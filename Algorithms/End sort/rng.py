@@ -3,7 +3,7 @@
 
 from random import randint
 
-NUM_NUMS = 23 # Number of values to generate
+NUM_NUMS = 11 # Number of values to generate
 MAX_NUM = NUM_NUMS * 3 # Set upper limit
 MIN_NUM = NUM_NUMS * -3 # Set lower limit
 FILE_NAME = "random_numbers.txt"

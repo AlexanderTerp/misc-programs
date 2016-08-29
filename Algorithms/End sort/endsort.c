@@ -8,23 +8,23 @@
 #define NORMAL "\x1B[0m"
 #define LIGHT_RED "\x1B[1;31m"
 
-#define LEN 23      // Number of items to be sorted
+#define LEN 11      // Number of items to be sorted
 #define MAX_NUM_LEN 3   // Length of the longest numbers (for printing purposes)
 
-void endsort(int array[], int n, int start, int LARGER_LEFT);
+void endsort(int array[], int n, int start, int start_large_left);
 void swap(int *pointer1, int *pointer2);
 void print_array(int array[], int n, int swap1, int swap2);
 void check_correctness(int array[], int n);
 
 int main(void) {
-    int array[LEN];
+    int array[LEN] = {27, -21, 7, -23, 29, 29, 6, -23, -32, 21, 13};
     int i;
-    for (i = 0; i < LEN; i++) {
-        scanf("%d", &array[i]);
-    }
+    //for (i = 0; i < LEN; i++) {
+    //    scanf("%d", &array[i]);
+    //}
 
     check_correctness(array, LEN);
-    for (i = 0; i < 16; i++) {
+    for (i = 0; i < 4; i++) {
         endsort(array, LEN, 0, i % 2);
         check_correctness(array, LEN);
     }
@@ -34,27 +34,29 @@ int main(void) {
     return 0;
 }
 
-void endsort(int array[], int n, int start, int LARGER_LEFT) {
+void endsort(int array[], int n, int start, int start_large_left) {
     // Enacts a cycle of what is dubbed the "endsort" sorting algorithm.
     // Acts recursively.
-    //printf("NEW CALL | n: %d | start: %d\n", n, start);
-    int half = (n + LARGER_LEFT) / 2;
+    printf("NEW CALL | n: %2d | start: %2d | start_large_left: %d\n", n, start, start_large_left);
+    int half = (n + start_large_left) / 2;
 
     if (n == 1) {
         return;
     } else {
-        int i;
-        for (i = 0; i < (n + 1) / 2; i++) {
-            if (array[start + i] > array[start + n - i - 1]) {
-                //printf("Swap %3d and %3d | \t\t", array[start + i], array[start + n - i - 1]);
-                //print_array(array, LEN, start + i, start + n - i - 1);
-                swap(&array[start + i], &array[start + n - i - 1]);
+        int i, j;
+        for (j = 0; j < 1 + (n % 2); j++) {
+            for (i = 0; i < (n + j + 1) / 2; i++) {
+                if (array[start + i] > array[start + n + j - i - 1]) {
+                    printf("Swap %3d and %3d | \t\t", array[start + i], array[start + n + j - i - 1]);
+                    print_array(array, LEN, start + i, start + n + j - i - 1);
+                    swap(&array[start + i], &array[start + n + j - i - 1]);
+                }
             }
         }
     }
 
-    endsort(array, half, start, (LARGER_LEFT + 1) % 2);
-    endsort(array, (n + !LARGER_LEFT) / 2, start + half, (LARGER_LEFT + 1) % 2);
+    endsort(array, half, start, start_large_left);
+    endsort(array, (n + !start_large_left) / 2, start + half, start_large_left);
 }
 
 void swap(int *pointer1, int *pointer2) {

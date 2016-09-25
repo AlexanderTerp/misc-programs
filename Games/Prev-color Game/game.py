@@ -63,14 +63,17 @@ def draw_cube(color, char, indent, row_num):
         print(color(" " * indent + char * col_num))
 
 def get_random_color():
-    # Using uniform probability, gets a color under the probabilities defined
-    # in COLOR_CHANCES. Returns a 'colored' method e.g. colored.red.
+    """Using uniform probability, gets a color under the probabilities defined
+    in COLOR_CHANCES. Returns a 'colored' method e.g. colored.red."""
+    
     num_colors = len(COLOR_CHANCES)
     rand_num = uniform(0, SUM_CHANCE)
 
     color_chance_items = list(COLOR_CHANCES.items())
+    # List comprehension to get a list containing just the chances.
     chances = [chance[1] for chance in color_chance_items]
 
+    # Find which color was generated.
     for color in range(num_colors):
         if rand_num < sum(chances[0:color + 1]):
             return color_chance_items[color][0]
@@ -102,9 +105,9 @@ time_start = clock()
 trial = 0
 while trial < NUM_TRIALS:
     # Print the result of the previous trial.
-    if prev_correct == 1:
+    if prev_correct == True:
         print(colored.green("CORRECT!"))
-    elif prev_correct == 0:
+    elif prev_correct == False:
         print(colored.red("WRONG!"))
     else:
         print("")
@@ -117,7 +120,7 @@ while trial < NUM_TRIALS:
 
     # Randomly generate a color and draw a corresponding cube.
     color = get_random_color()
-    draw_cube(color, "#", 5, 8)
+    draw_cube(color, "#", CUBE_INDENT, CUBE_SIDE_LEN)
 
     # Get user input.
     key_press = ord(getch())
@@ -135,15 +138,15 @@ while trial < NUM_TRIALS:
     if (key_press == LEFT_KEY):
         if (prev_color == color): # If CORRECT
             score += 1
-            prev_correct = 1
+            prev_correct = True
         else:
-            prev_correct = 0
+            prev_correct = False
     elif (key_press == RIGHT_KEY):
         if (prev_color != color): # If CORRECT
             score += 1
-            prev_correct = 1
+            prev_correct = True
         else:
-            prev_correct = 0
+            prev_correct = False
 
     # Prepare for the next round by saving the current color.
     prev_color = color

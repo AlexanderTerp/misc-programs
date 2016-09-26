@@ -5,6 +5,8 @@ This folder also contains 'qsort.c' which is just a small generic program that s
 
 Likewise, it also contains 'rng.py', which again is just a small generic program that generates random numbers in a text file to test the algorithm on.
 
+See the dev branch for active changes. Currently, the master branch can sort seemingly any list of numbers correctly, although funnily enough not via the intended process.
+
 TODO:
 - Implement new sorting method.
 - Expand on comments and documentation.

@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define ITEMS 3210371
+#define ITEMS 524288
 
 int cmpfunc (const void * a, const void * b);
 void check_correctness(int array[], int n);

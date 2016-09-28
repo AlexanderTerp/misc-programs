@@ -9,7 +9,7 @@
 #define NORMAL "\x1B[0m"
 #define LIGHT_RED "\x1B[1;31m"
 
-#define ITEMS 100000       // Number of items to be sorted
+#define ITEMS 3210371       // Number of items to be sorted
 #define MAX_ITEM_LEN 3      // Length of the longest numbers (for printing purposes)
 #define CYCLES 24 // The number of cycles of the algorithm that are applied.
 
@@ -19,9 +19,10 @@ void print_array(int array[], int n, int swap1, int swap2);
 void check_correctness(int array[], int n);
 
 int main(void) {
-    int* array = malloc(ITEMS);
+    int* array = malloc(sizeof(int) * ITEMS);
     int i;
     for (i = 0; i < ITEMS; i++) {
+        //printf("%d\n", i);
         scanf("%d", &array[i]);
     }
 

@@ -5,17 +5,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define LEN 32
+#define ITEMS 3210371
 
 int cmpfunc (const void * a, const void * b);
 void check_correctness(int array[], int n);
 
 int main(void) {
-	int array[] = {43, 54, 41, 85, -87, -16, 17, -84, -16, 92, 57, 61, 6, 4, 50, 26, 56, -75, 21, 83, -19, -45, -83, -22, -4, -88, 2, -95, -79, 63, 9, -26};
-
-	check_correctness(array, LEN);
-	qsort(array, LEN, sizeof(int), cmpfunc);
-	check_correctness(array, LEN);
+	int* array = malloc(sizeof(int) * ITEMS);
+    int i;
+    for (i = 0; i < ITEMS; i++) {
+        //printf("%d\n", i);
+        scanf("%d", &array[i]);
+    }
+	check_correctness(array, ITEMS);
+	qsort(array, ITEMS, sizeof(int), cmpfunc);
+	check_correctness(array, ITEMS);
 
 	return 0;
 }

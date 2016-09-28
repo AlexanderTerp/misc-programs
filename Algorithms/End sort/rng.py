@@ -3,10 +3,10 @@
 
 from random import randint
 
-NUM_NUMS = 100000 # Number of values to generate
+NUM_NUMS = 3210371 # Number of values to generate
 MAX_NUM = NUM_NUMS * 3 # Set upper limit
 MIN_NUM = NUM_NUMS * -3 # Set lower limit
-FILE_NAME = "random_numbers.txt"
+FILE_NAME = "rand_nums.txt"
 
 file = open(FILE_NAME, 'w')
 

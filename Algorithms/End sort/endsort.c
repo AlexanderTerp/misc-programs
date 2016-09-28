@@ -9,9 +9,9 @@
 #define NORMAL "\x1B[0m"
 #define LIGHT_RED "\x1B[1;31m"
 
-#define ITEMS 3210371       // Number of items to be sorted
+#define ITEMS 12       // Number of items to be sorted
 #define MAX_ITEM_LEN 3      // Length of the longest numbers (for printing purposes)
-#define CYCLES 24 // The number of cycles of the algorithm that are applied.
+#define CYCLES 2 // The number of cycles of the algorithm that are applied.
 
 void endsort(int array[], int n, int start, int start_large_left);
 void swap(int *pointer1, int *pointer2);
@@ -40,7 +40,7 @@ int main(void) {
 void endsort(int array[], int n, int start, int start_large_left) {
     // Enacts a cycle of what is dubbed the "endsort" sorting algorithm.
     // Acts recursively.
-    //printf("NEW CALL | n: %2d | start: %2d | start_large_left: %d\n", n, start, start_large_left);
+    printf("NEW CALL | n: %2d | start: %2d | start_large_left: %d\n", n, start, start_large_left);
     int half = (n + start_large_left) / 2;
 
     if (n == 1) {
@@ -48,11 +48,11 @@ void endsort(int array[], int n, int start, int start_large_left) {
     } else {
         int i, j;
         for (j = 0; j < 1 + (n % 2); j++) {
-            for (i = 0; i < (n + j + 1) / 2; i++) {
-                if (array[start + i] > array[start + n + j - i - 1]) {
-                    //printf("Swap %3d and %3d | \t\t", array[start + i], array[start + n + j - i - 1]);
-                    //print_array(array, ITEMS, start + i, start + n + j - i - 1);
-                    swap(&array[start + i], &array[start + n + j - i - 1]);
+            for (i = 0; i < (n+j+1)/2; i++) {
+                if (array[start + i] > array[start + n+j-i - 1]) {
+                    printf("Swap %3d and %3d | \t\t", array[start + i], array[start + n+j-i - 1]);
+                    print_array(array, ITEMS, start + i, start + n+j-i - 1);
+                    swap(&array[start + i], &array[start + n+j-i - 1]);
                 }
             }
         }

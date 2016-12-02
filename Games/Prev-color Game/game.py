@@ -133,8 +133,8 @@ while trial < NUM_TRIALS:
         print("Keyboard Interrupt, exiting...")
         exit()
     
-    # Left key = SAME as previous color
-    # Right key = DIFFERENT from previous color
+    # Left key = SAME as previous color           ####CONTROLS####
+    # Right key = DIFFERENT from previous color   ####CONTROLS####
     if (key_press == LEFT_KEY):
         if (prev_color == color): # If CORRECT
             score += 1

@@ -1,5 +1,5 @@
 # N Puzzle
-This is an implementation of the famous [15-puzzle](https://en.wikipedia.org/wiki/15_puzzle/) game, although the program is easily configurable to work in any dimensions, hence the N. To play, enter the number on the piece you'd like to move.
+This is an implementation of the famous [15-puzzle](https://en.wikipedia.org/wiki/15_puzzle) game, although the program is easily configurable to work in any dimensions, hence the N. To play, enter the number on the piece you'd like to move.
 
 Ideas:
     - Prevent Loyd's infamous 15-14 problem.

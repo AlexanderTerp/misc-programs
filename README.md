@@ -7,3 +7,4 @@ A repository to hold random small projects that I work on that may not deserve r
         - Z-sort
 - Games
     - Prev-color Game
+    - N Puzzle

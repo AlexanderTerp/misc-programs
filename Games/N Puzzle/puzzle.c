@@ -9,7 +9,15 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
-#include <windows.h>
+
+// Check whether system OS is Windows or Unix and imports appropriate library.
+#ifdef _WIN32
+    #define OS_IS_WINDOWS 1
+    #include <windows.h>
+#else
+    #define OS_IS_WINDOWS 0
+    #include <unistd.h>
+#endif
 
 #define NUM_ROWS 4
 #define NUM_COLS 4
@@ -24,6 +32,7 @@ int is_valid_move(int board[NUM_ROWS][NUM_COLS], int piece_row,
     int piece_col, int space_row, int space_col);
 int move_piece(int piece, int board[NUM_ROWS][NUM_COLS]);
 void generate_pieces(int unused_pieces[NUM_PIECES]);
+void clear_screen();
 
 int main(void) {
     // Create the numbered pieces for the puzzle.
@@ -36,7 +45,7 @@ int main(void) {
 
     int piece_to_move;
 
-    system("cls");
+    clear_screen();
     while (1) {
         // Print current board.
         printf("\n");
@@ -47,13 +56,21 @@ int main(void) {
         scanf("%d", &piece_to_move);
 
         // Evaluate move.
-        system("cls");
+        clear_screen();
         if ( !move_piece(piece_to_move, board) ) {
             printf("Invalid move.");
         }
     }
 
     return 0;
+}
+
+void clear_screen() {
+    if (OS_IS_WINDOWS) {
+        system("cls");
+    } else {
+        system("clear");
+    }
 }
 
 void generate_board(int board[NUM_ROWS][NUM_COLS], int unused_pieces[]) {

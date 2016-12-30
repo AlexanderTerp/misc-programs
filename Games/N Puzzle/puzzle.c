@@ -19,8 +19,8 @@
     #include <unistd.h>
 #endif
 
-#define NUM_ROWS 2
-#define NUM_COLS 2
+#define NUM_ROWS 4
+#define NUM_COLS 4
 #define NUM_PIECES (NUM_ROWS * NUM_COLS - 1)
 
 // ASCII value for the space character.

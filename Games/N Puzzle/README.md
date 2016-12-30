@@ -3,7 +3,6 @@ This is an implementation of the famous [15-puzzle](https://en.wikipedia.org/wik
 
 Ideas:
 - Prevent Loyd's infamous 15-14 problem.
-- Have a victory condition that gets checked.
 - Perhaps implement simpler controls, utilizing the arrow keys.
 - Perhaps have a game solver that shows a step-by-step solution.
 - Perhaps add a timer.

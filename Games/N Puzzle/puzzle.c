@@ -19,8 +19,8 @@
     #include <unistd.h>
 #endif
 
-#define NUM_ROWS 4
-#define NUM_COLS 4
+#define NUM_ROWS 2
+#define NUM_COLS 2
 #define NUM_PIECES (NUM_ROWS * NUM_COLS - 1)
 
 // ASCII value for the space character.
@@ -33,6 +33,7 @@ int is_valid_move(int board[NUM_ROWS][NUM_COLS], int piece_row,
 int move_piece(int piece, int board[NUM_ROWS][NUM_COLS]);
 void generate_pieces(int unused_pieces[NUM_PIECES]);
 void clear_screen();
+int has_won(int board[NUM_ROWS][NUM_COLS]);
 
 int main(void) {
     // Create the numbered pieces for the puzzle.
@@ -50,6 +51,11 @@ int main(void) {
         // Print current board.
         printf("\n");
         print_board(board);
+
+        if ( has_won(board) ) {
+            printf("\nCongratulations, you've won!\n");
+            return 0;
+        }
 
         // Prompt for a move.
         printf("\n> ");
@@ -187,4 +193,33 @@ void generate_pieces(int unused_pieces[NUM_PIECES]) {
     for (i = 1; i <= NUM_PIECES; i++) {
         unused_pieces[i-1] = i;
     }
+}
+
+int has_won(int board[NUM_ROWS][NUM_COLS]) {
+    /* Checks if all the pieces are in the correct order to have beaten the game
+    i.e. in increasing order with the blank being in the bottom right. If 
+    beaten, returns 1. Otherwise, returns 0. */
+
+    int row, col, prev_piece = board[0][0];
+    for (row = 0; row < NUM_ROWS; row++) {
+        for (col = 0; col < NUM_COLS; col++) {
+            if (board[row][col] == 0) {
+                // If a 0 (blank space) is met, it must be in the bottom right.
+                // Otherwise, the player has not won.
+                return ( row == (NUM_ROWS-1) && col == (NUM_COLS-1) );
+            } else if (board[row][col] < prev_piece) {
+                // If a piece is not in ascending order from the previous piece,
+                // the player has not won.
+                return 0;
+            } else {
+                // So far so good. Save the current piece as prev_piece and move
+                // on to the next piece of the board to check everything again.
+                prev_piece = board[row][col];
+            }
+        }
+    }
+
+    // The nested for loops have run to completion. Player must have won the
+    // game.
+    return 1;
 }

@@ -1,0 +1,47 @@
+Player's hand  (2): 		2S
+Dealer's hand (10):		7D, 3C
+
+YOUR TURN
+[H]it or [P]ass?
+
+> H
+-----------------------------------------------
+Player's hand (13): 		2S, JD
+Dealer's hand (10):		7D, 3C
+
+YOUR TURN
+[H]it or [P]ass?
+
+> H
+-----------------------------------------------
+Player's hand (20): 		2S, JD, 7C
+Dealer's hand (10):		7D, 3C
+
+YOUR TURN
+[H]it or [P]ass?
+
+> P
+-----------------------------------------------
+Player's hand (20): 		2S, JD, 7C
+Dealer's hand (10):		7D, 3C
+
+DEALER'S TURN . . .
+
+Dealer hits!
+-----------------------------------------------
+Player's hand (20): 		2S, JD, 7C
+Dealer's hand (13):		7D, 3C, 3H
+
+DEALER'S TURN . . .
+
+Dealer hits!
+-----------------------------------------------
+Player's hand (20): 		2S, JD, 7C
+Dealer's hand (26):		7D, 3C, 3H, KD
+
+Player wins the round!
+Player: 1
+Dealer: 2
+
+Play again? (Y/N)
+> 

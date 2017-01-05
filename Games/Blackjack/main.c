@@ -83,6 +83,7 @@ int check_game_fin(Game *game_data);
 int get_next_player(int prev_player, Game *game_data);
 void deal_card(Player *player, Game *game_data);
 void refresh_deck_value(Player *player);
+int ai_hit(Player *player, Game *game_data);
 
 int main(void) {
     // Initialize game_data and seed the random number generator.
@@ -213,7 +214,22 @@ void play_game(int game_num, Game *game_data) {
                 cross_sleep(1000);
             }
             printf("\n");
-            // TODO: ADD AI BEHAVIOR FOR WHEN IT'S THEIR TURN.
+            hit = ai_hit( &(game_data->players[next_player]), game_data);
+
+            if (hit) {
+                deal_card( &(game_data->players[next_player]), game_data);
+                refresh_deck_value( &(game_data->players[next_player]));
+                if (game_data->players[next_player].deck_value > WIN_VALUE) {
+                    printf("Player %d is at %d, over %d! Player %d is out!\n", 
+                        next_player+1, 
+                        game_data->players[next_player].deck_value, WIN_VALUE,
+                        next_player+1);
+                    game_data->players[next_player].out = 1;
+                    next_player = get_next_player(next_player, game_data);
+                }
+            } else {
+                next_player = get_next_player(next_player, game_data);
+            }
         }
     }
 }
@@ -290,4 +306,36 @@ void refresh_deck_value(Player *player) {
     }
 
     player->deck_value = sum;
+}
+
+int ai_hit(Player *player, Game *game_data) {
+    /* Calculates whether the AI should hit or pass. Returns a 1 for hit and 0
+    for pass. */
+
+    // Checks if the AI is behind another player in value. If so, hit no matter
+    // what as passing would mean a certain loss.
+    int i;
+    for (i = 0; i < NUM_PLAYERS; i++) {
+        if ( !game_data->players[i].out && 
+            player->id != game_data->players[i].id) {
+            if (player->deck_value <= game_data->players[i].deck_value) {
+                return 1;
+            }
+        }
+    }
+
+    // Must not be behind in value relative to any other player. Calculate the
+    // number of cards that would result in losing and the number of cards that
+    // would not result in losing.
+    int cards_lose = 0, cards_survive = 0, curr_value = player->deck_value,
+        card_will_lose;
+    for (i = 0; i < NUM_CARDS; i++) {
+        card_will_lose = curr_value + game_data->deck.cards[i].rank > WIN_VALUE;
+        cards_lose += card_will_lose;
+        cards_survive += !card_will_lose;
+    }
+
+    // If it's more likely to pick a card that'll keep you in the game, hit.
+    // Otherwise, pass.
+    return cards_survive >= cards_lose;
 }

@@ -27,11 +27,16 @@
 // Theoretical max before losing. 4 twos, 4 threes, 1 ace (value 1), plus one
 // additional card to go over 21.
 #define MAX_CARDS_IN_HAND 10
+#define INIT_MOVES
 
 #define JACK 11
 #define QUEEN 12
 #define KING 13
 #define ACE 14
+#define MAX_ACE_VALUE 11
+#define MIN_ACE_VALUE 1
+
+#define MAX_NON_ACE_VALUE 10
 
 #define SPADES 'S'
 #define HEARTS 'H'
@@ -84,6 +89,7 @@ int get_next_player(int prev_player, Game *game_data);
 void deal_card(Player *player, Game *game_data);
 void refresh_deck_value(Player *player);
 int ai_hit(Player *player, Game *game_data);
+int is_face_card(Card *card);
 
 int main(void) {
     // Initialize game_data and seed the random number generator.
@@ -299,11 +305,40 @@ void deal_card(Player *player, Game *game_data) {
 }
 
 void refresh_deck_value(Player *player) {
-    /* Recalculates and updates the .deck_value for a given player. */
+    /* Recalculates and updates the .deck_value for a given player. Includes
+    ace handling. */
 
-    int i, sum = 0;
+    int i, sum = 0, aces = 0;
     for (i = 0; i < player->num_cards_in_hand; i++) {
-        sum += player->hand[i].rank;
+            sum += MAX_NON_ACE_VALUE;
+        } else if (player->hand[i].rank == ACE) {
+            aces++;
+        } else {
+            sum += player->hand[i].rank;
+        }
+    }
+
+    if (aces) {
+
+        // Start off by assuming all aces add their minimum possible value.
+        sum += aces;
+        if (sum > WIN_VALUE) {
+            // Even with all aces valued at MIN_ACE_VALUE, still over WIN_VALUE.
+            player->deck_value = sum;
+            return;
+        }
+
+        for (i = 0; i < aces; i++) {
+            // Consider each ace. If we turn one of them into their max value,
+            // are we still okay? If so, do that. Consider ace, if present. If 
+            // not okay, save the current sum in deck_value and exit.
+            if (sum + MAX_ACE_VALUE-MIN_ACE_VALUE <= WIN_VALUE) {
+                sum += MAX_ACE_VALUE-MIN_ACE_VALUE;
+            } else {
+                player->deck_value = sum;
+                return;
+            }
+        }
     }
 
     player->deck_value = sum;
@@ -339,4 +374,11 @@ int ai_hit(Player *player, Game *game_data) {
     // If it's more likely to pick a card that'll keep you in the game, hit.
     // Otherwise, pass.
     return cards_survive >= cards_lose;
+}
+
+int is_face_card(Card *card) {
+    /* Returns 1 if the given card is a jack, queen, or king. Returns 0
+    otherwise. */
+
+    return card->rank >= JACK && card->rank < ACE;
 }

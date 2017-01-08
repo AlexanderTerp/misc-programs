@@ -70,6 +70,7 @@ typedef struct {
     int wins;
     int losses;
     int is_ai;
+    char* moves[INIT_MOVES];
 } Player;
 
 typedef struct {
@@ -310,6 +311,7 @@ void refresh_deck_value(Player *player) {
 
     int i, sum = 0, aces = 0;
     for (i = 0; i < player->num_cards_in_hand; i++) {
+        if (is_face_card( &(player->hand[i]) )) {
             sum += MAX_NON_ACE_VALUE;
         } else if (player->hand[i].rank == ACE) {
             aces++;

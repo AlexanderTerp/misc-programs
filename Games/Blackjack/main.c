@@ -30,7 +30,10 @@
 #define MAX_AI_DIFFICULTY 3
 #define EASY_AI_PASS_VALUE 16
 
+// Determine the amount of time AI wait between moves.
+// Pause Time (ms) = AI_DELAY * MS_PER_DELAY.
 #define AI_DELAY 2
+#define MS_PER_DELAY 750
 
 #define WIN_VALUE 21
 #define NUM_CARDS 52
@@ -89,7 +92,6 @@ typedef struct {
     int hand_value;
     int out;
     int wins;
-    int losses;
     int is_ai;
     int difficulty;
     int num_moves;
@@ -119,6 +121,7 @@ int ai_hit(Player *player, Game *game_data);
 int is_face_card(Card *card);
 void add_move(Player *player, char move);
 void declare_victor(Game *game_data);
+void reset_game(Game *game_data);
 
 int main(void) {
     // Initialize game_data and seed the random number generator.
@@ -138,11 +141,13 @@ int main(void) {
     // Initialize players.
     init_players(&game_data);
 
-    int play_again = 1;
-
+    int play_again = 1, game_num = 1;
     while (play_again) {
-        play_game(1, &game_data);
-        play_again = 0;
+        play_game(game_num++, &game_data);
+        reset_game(&game_data);
+        
+        printf("\nPlay again? (1/0)\n> ");
+        scanf("%d", &play_again);
     }
 
     return 0;
@@ -236,7 +241,7 @@ int init_players(Game *game_data) {
     int i, difficulty;
     for (i = 1; i <= NUM_PLAYERS; i++) {
         Player player = {.id = i, .num_cards = 0, .hand_value = 0,
-            .out = 0, .wins = 0, .losses = 0, .num_moves = 0, 
+            .out = 0, .wins = 0, .num_moves = 0, 
             .moves_array_size = INIT_MOVES};
 
         player.moves = malloc(INIT_MOVES * sizeof *(player.moves) );
@@ -294,7 +299,7 @@ void play_game(int game_num, Game *game_data) {
         } else {
             for (i = 0; i < AI_DELAY; i++) {
                 printf(" .");
-                cross_sleep(1000);
+                cross_sleep(MS_PER_DELAY);
             }
             hit = ai_hit( &(game_data->players[next_player]), game_data);
 
@@ -397,12 +402,19 @@ int get_next_player(int prev_player, Game *game_data) {
 void deal_card(Player *player, Game *game_data) {
     /* Deals a random card from the deck into a specified player's hand. */
 
+    // Checks if the deck is empty. If so, resets it or "adds a second deck".
+    if (game_data->deck.cards_left == 0) {
+        printf("\n\nAdding second deck!\n\n");
+        repopulate_deck( &(game_data->deck) );
+    }
+
     int random = rand() % NUM_CARDS;
     while ( !game_data->deck.cards[random].in_deck ) {
         random = (random + 1) % NUM_CARDS;
     }
 
     game_data->deck.cards[random].in_deck = 0;
+    game_data->deck.cards_left--;
     player->hand[player->num_cards++] = game_data->deck.cards[random];
 }
 
@@ -555,5 +567,22 @@ void declare_victor(Game *game_data) {
     for (i = 0; i < NUM_PLAYERS; i++) {
         printf("Player %d: %2d\n", game_data->players[i].id, 
             game_data->players[i].wins);
+    }
+}
+
+void reset_game(Game *game_data) {
+    /* Resets game_data and items inside it post-game, preparing to start a new
+    match. */
+
+    // Reset the game deck.
+    repopulate_deck( &(game_data->deck) );
+
+    // Reset each players' hands.
+    int i;
+    for (i = 0; i < NUM_PLAYERS; i++) {
+        game_data->players[i].num_cards = 0;
+        game_data->players[i].hand_value = 0;
+        game_data->players[i].out = 0;
+        game_data->players[i].num_moves = 0;
     }
 }

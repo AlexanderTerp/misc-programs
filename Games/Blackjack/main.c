@@ -30,7 +30,7 @@
 #define MAX_AI_DIFFICULTY 3
 #define EASY_AI_PASS_VALUE 16
 
-#define AI_DELAY 1
+#define AI_DELAY 2
 
 #define WIN_VALUE 21
 #define NUM_CARDS 52

@@ -6,6 +6,6 @@ A repository to hold random small projects that I work on that may not deserve r
         - End sort
         - Z-sort
 - Games
-    - Blackjack
+    - Blackjack (Custom)
     - N Puzzle
     - Prev-color Game

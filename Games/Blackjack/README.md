@@ -20,5 +20,3 @@ Rules:
 TODO:
     - Make use of Y/N for yes/no questions and H/P for hit/pass decisions instead of 1/0.
     - Handle invalid input (e.g. writing 'g' to H/P scenarios).
-    - Ensure the deck does not run out of cards (reshuffle it/add second deck [both have the same effect]).
-    - Change AI delay is such a way that different delays don't have to differ by whole seconds.

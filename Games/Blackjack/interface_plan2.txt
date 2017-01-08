@@ -36,9 +36,9 @@ Your hand   (14):	4D, KC
 
 Player 2's turn . . . HIT!
 -----------------------------------------------
-Your hand   (14):	4D, KC
-# Player 2 Cards:	1 | H
-# Player 3 Cards:	0 |
+Player 1's Cards (14):		4D, KC
+# Player 2's Cards:		1 | H
+# Player 3 Cards:		0 |
 
 Player 2's turn . . . HIT!
 -----------------------------------------------

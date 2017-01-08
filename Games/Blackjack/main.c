@@ -27,7 +27,7 @@
 // Theoretical max before losing. 4 twos, 4 threes, 1 ace (value 1), plus one
 // additional card to go over 21.
 #define MAX_CARDS_IN_HAND 10
-#define INIT_MOVES
+#define INIT_MOVES 8
 
 #define JACK 11
 #define QUEEN 12
@@ -54,7 +54,7 @@
 #define LINE "-----------------------------------------------"
 
 // Define global variables.
-int USER_PLAYING;
+int USERS_PLAYING;
 int NUM_PLAYERS = 0;
 
 typedef struct {
@@ -72,13 +72,15 @@ typedef struct {
 typedef struct {
     int id;
     Card hand[MAX_CARDS_IN_HAND];
-    int num_cards_in_hand;
+    int num_cards;
     int deck_value;
     int out;
     int wins;
     int losses;
     int is_ai;
-    char* moves[INIT_MOVES];
+    int num_moves;
+    int moves_array_size;
+    char* moves;
 } Player;
 
 typedef struct {
@@ -91,14 +93,17 @@ void init_deck(Deck* deck);
 void repopulate_deck(Deck* deck);
 void print_cards(int num_cards, Card cards[num_cards]);
 Card create_card(int id);
-void play_game(int game_num, Game *game_data);
 int init_players(Game *game_data);
+void play_game(int game_num, Game *game_data);
+void print_heading(Game *game_data, int next_player);
+void print_moves(Player *player);
 int check_game_fin(Game *game_data);
 int get_next_player(int prev_player, Game *game_data);
 void deal_card(Player *player, Game *game_data);
 void refresh_deck_value(Player *player);
 int ai_hit(Player *player, Game *game_data);
 int is_face_card(Card *card);
+void add_move(Player *player, char move);
 
 int main(void) {
     // Initialize game_data and seed the random number generator.
@@ -108,12 +113,12 @@ int main(void) {
     // Initialize and populate deck.
     init_deck(&(game_data.deck));
 
-    printf("Would you like to play? (1/0)\n> ");
-    scanf("%d", &USER_PLAYING);
+    printf("Number of humans playing?\n> ");
+    scanf("%d", &USERS_PLAYING);
 
     printf("How many bots?\n> ");
     scanf("%d", &NUM_PLAYERS);
-    NUM_PLAYERS += USER_PLAYING;
+    NUM_PLAYERS += USERS_PLAYING;
 
     // Initialize players.
     printf("Init players: %d\n", init_players(&game_data));
@@ -201,20 +206,38 @@ Card create_card(int id) {
     return card;
 }
 
+int init_players(Game *game_data) {
+
+    // Allocate memory to store the players.
+    game_data->players = malloc(NUM_PLAYERS * sizeof *(game_data->players) );
+
+    int i;
+    for (i = 1; i <= NUM_PLAYERS; i++) {
+        Player player = {.id = i, .num_cards = 0, .deck_value = 0,
+            .out = 0, .wins = 0, .losses = 0, .is_ai = 1, .num_moves = 0,
+            .moves_array_size = INIT_MOVES};
+
+        player.moves = malloc(INIT_MOVES * sizeof *(player.moves) );
+
+        game_data->players[i-1] = player;
+    }
+
+    // If there are users playing, switch their .is_ai property to false.
+    for (i = 0; i < USERS_PLAYING; i++) {
+        game_data->players[i].is_ai = 0;
+    }
+
+    return 1;
+}
+
 void play_game(int game_num, Game *game_data) {
 
     int i, hit, next_player = 0;
+
     printf("Round %d\n", game_num);
     while ( !check_game_fin(game_data) ) {
         printf("%s", LINE);
-        for (i = 0; i < NUM_PLAYERS; i++) {
-            if ( !game_data->players[i].out || game_data->players[i].out ) { // REMOVE OR
-                printf("\nPlayer %d's hand (%2d):\t\t", 
-                    game_data->players[i].id, game_data->players[i].deck_value);
-                print_cards(game_data->players[i].num_cards_in_hand, 
-                    game_data->players[i].hand);
-            }
-        }
+        print_heading(game_data, next_player);
 
         printf("\n\nPlayer %d's turn", next_player+1);
         if ( !game_data->players[next_player].is_ai ) {
@@ -222,6 +245,7 @@ void play_game(int game_num, Game *game_data) {
             scanf("%d", &hit);
 
             if (hit) {
+                add_move( &(game_data->players[next_player]), HIT);
                 deal_card( &(game_data->players[next_player]), game_data);
                 refresh_deck_value( &(game_data->players[next_player]));
                 if (game_data->players[next_player].deck_value > WIN_VALUE) {
@@ -231,6 +255,7 @@ void play_game(int game_num, Game *game_data) {
                     next_player = get_next_player(next_player, game_data);
                 }
             } else {
+                add_move( &(game_data->players[next_player]), PASS);
                 next_player = get_next_player(next_player, game_data);
             }
 
@@ -243,6 +268,7 @@ void play_game(int game_num, Game *game_data) {
 
             if (hit) {
                 printf(" HIT!\n");
+                add_move( &(game_data->players[next_player]), HIT);
                 deal_card( &(game_data->players[next_player]), game_data);
                 refresh_deck_value( &(game_data->players[next_player]));
                 if (game_data->players[next_player].deck_value > WIN_VALUE) {
@@ -255,30 +281,41 @@ void play_game(int game_num, Game *game_data) {
                 }
             } else {
                 printf(" PASS!\n");
+                add_move( &(game_data->players[next_player]), PASS);
                 next_player = get_next_player(next_player, game_data);
             }
         }
     }
 }
 
-int init_players(Game *game_data) {
+void print_heading(Game *game_data, int next_player) {
 
-    // Allocate memory to store the players.
-    game_data->players = malloc(NUM_PLAYERS * sizeof *(game_data->players) );
+    // Print player moves/values/cards (heading).
+    int i;
+    for (i = 0; i < NUM_PLAYERS; i++) {
+        // Only print for players still in the game.
+        if ( !game_data->players[i].out || game_data->players[i].out ) { // REMOVE OR
+            if ( !game_data->players[i].is_ai && (USERS_PLAYING == 1 || 
+                                                        i == next_player)) {
+                printf("\nPlayer %d's hand (%2d):\t\t", 
+                    game_data->players[i].id, game_data->players[i].deck_value);
+                print_cards(game_data->players[i].num_cards, 
+                    game_data->players[i].hand);
+            } else {
+                printf("\n# Player %d's cards:\t\t%d |", 
+                    game_data->players[i].id, game_data->players[i].num_cards);
+                print_moves( &(game_data->players[i]) );
+            }
+        }
+    }
+}
+
+void print_moves(Player *player) {
 
     int i;
-    for (i = 1; i <= NUM_PLAYERS; i++) {
-        Player player = {.id = i, .num_cards_in_hand = 0, .deck_value = 0,
-            .out = 0, .wins = 0, .losses = 0, .is_ai = 1};
-
-        game_data->players[i-1] = player;
+    for (i = 0; i < player->num_moves; i++) {
+        printf("%c, ", player->moves[i]);
     }
-
-    if (USER_PLAYING) {
-        game_data->players[0].is_ai = 0;
-    }
-
-    return 1;
 }
 
 int check_game_fin(Game *game_data) {
@@ -308,7 +345,7 @@ int get_next_player(int prev_player, Game *game_data) {
     while (game_data->players[i].out) {
         i = (i + 1) % NUM_PLAYERS;
     }
-    printf("get_next_player: %d -> %d\n", prev_player, i);
+    
     return i;
 }
 
@@ -321,7 +358,7 @@ void deal_card(Player *player, Game *game_data) {
     }
 
     game_data->deck.cards[random].in_deck = 0;
-    player->hand[player->num_cards_in_hand++] = game_data->deck.cards[random];
+    player->hand[player->num_cards++] = game_data->deck.cards[random];
 }
 
 void refresh_deck_value(Player *player) {
@@ -329,7 +366,7 @@ void refresh_deck_value(Player *player) {
     ace handling. */
 
     int i, sum = 0, aces = 0;
-    for (i = 0; i < player->num_cards_in_hand; i++) {
+    for (i = 0; i < player->num_cards; i++) {
         if (is_face_card( &(player->hand[i]) )) {
             sum += MAX_NON_ACE_VALUE;
         } else if (player->hand[i].rank == ACE) {
@@ -404,6 +441,15 @@ int is_face_card(Card *card) {
     return card->rank >= JACK && card->rank < ACE;
 }
 
-// int add_move(Player *player, char move) {
+void add_move(Player *player, char move) {
 
-// }
+    player->num_moves++;
+
+    if (player->num_moves > player->moves_array_size) {
+        player->moves_array_size *= 2;
+        player->moves = realloc(player->moves, 
+            player->moves_array_size * sizeof *(player->moves));
+    }
+
+    player->moves[player->num_moves-1] = move;
+}

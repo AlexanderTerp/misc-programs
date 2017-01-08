@@ -20,11 +20,15 @@
 
 // Define macro values.
 
-/* Define DEBUG level. Each subsequent level includes previous levels' features.
-    LEVEL 1: Don't print player moves. Instead, print players' hands.
-    LEVEL 2: Don't hide players' cards who are out.
-*/
-#define DEBUG 1
+// Define DEBUG level. Each subsequent level includes previous levels' features.
+// LEVEL 0: No debugging features. Plays as intended for end-users.
+// LEVEL 1: Don't hide other players' cards (who are not out).
+// LEVEL 2: Don't hide players' cards even if they're out.
+#define DEBUG 0
+
+#define MIN_BOT_DIFFICULTY 1
+#define MAX_BOT_DIFFICULTY 3
+#define EASY_BOT_PASS_VALUE 16
 
 #define WIN_VALUE 21
 #define NUM_CARDS 52
@@ -80,11 +84,12 @@ typedef struct {
     int id;
     Card hand[MAX_CARDS_IN_HAND];
     int num_cards;
-    int deck_value;
+    int hand_value;
     int out;
     int wins;
     int losses;
     int is_ai;
+    int difficulty;
     int num_moves;
     int moves_array_size;
     char* moves;
@@ -107,7 +112,7 @@ void print_moves(Player *player);
 int check_game_fin(Game *game_data);
 int get_next_player(int prev_player, Game *game_data);
 void deal_card(Player *player, Game *game_data);
-void refresh_deck_value(Player *player);
+void refresh_hand_value(Player *player);
 int ai_hit(Player *player, Game *game_data);
 int is_face_card(Card *card);
 void add_move(Player *player, char move);
@@ -123,12 +128,12 @@ int main(void) {
     printf("Number of humans playing?\n> ");
     scanf("%d", &USERS_PLAYING);
 
-    printf("How many bots?\n> ");
+    printf("\nHow many bots?\n> ");
     scanf("%d", &NUM_PLAYERS);
     NUM_PLAYERS += USERS_PLAYING;
 
     // Initialize players.
-    printf("Init players: %d\n", init_players(&game_data));
+    init_players(&game_data);
 
     int play_again = 1;
 
@@ -215,23 +220,40 @@ Card create_card(int id) {
 
 int init_players(Game *game_data) {
 
+    // Define a difficulty for bots. 
+    // LEVEL 1: Easy. Has no access to card-counting/the deck nor other players'
+    //          values.
+    // LEVEL 2: Medium. Has access to the deck and so can do better probability 
+    //          calculations.
+    // LEVEL 3: Hard. Has access to both the deck and hand_values of other players.
+
     // Allocate memory to store the players.
     game_data->players = malloc(NUM_PLAYERS * sizeof *(game_data->players) );
 
-    int i;
+    int i, difficulty;
     for (i = 1; i <= NUM_PLAYERS; i++) {
-        Player player = {.id = i, .num_cards = 0, .deck_value = 0,
-            .out = 0, .wins = 0, .losses = 0, .is_ai = 1, .num_moves = 0,
+        Player player = {.id = i, .num_cards = 0, .hand_value = 0,
+            .out = 0, .wins = 0, .losses = 0, .num_moves = 0, 
             .moves_array_size = INIT_MOVES};
 
         player.moves = malloc(INIT_MOVES * sizeof *(player.moves) );
 
-        game_data->players[i-1] = player;
-    }
+        if (i > USERS_PLAYING) {
+            // Must be an AI.
+            player.is_ai = 1;
 
-    // If there are users playing, switch their .is_ai property to false.
-    for (i = 0; i < USERS_PLAYING; i++) {
-        game_data->players[i].is_ai = 0;
+            printf("\nDefine a bot difficulty %d to %d for Player %d:\n> ", 
+                MIN_BOT_DIFFICULTY, MAX_BOT_DIFFICULTY, i);
+            scanf("%d", &difficulty);
+
+            player.difficulty = difficulty;
+        } else {
+            // Must be a human player.
+            player.is_ai = 0;
+            player.difficulty = -1;
+        }
+
+        game_data->players[i-1] = player;
     }
 
     return 1;
@@ -254,10 +276,10 @@ void play_game(int game_num, Game *game_data) {
             if (hit) {
                 add_move( &(game_data->players[next_player]), HIT);
                 deal_card( &(game_data->players[next_player]), game_data);
-                refresh_deck_value( &(game_data->players[next_player]));
-                if (game_data->players[next_player].deck_value > WIN_VALUE) {
+                refresh_hand_value( &(game_data->players[next_player]));
+                if (game_data->players[next_player].hand_value > WIN_VALUE) {
                     printf("You're at %d, over %d! You're out!\n", 
-                        game_data->players[next_player].deck_value, WIN_VALUE);
+                        game_data->players[next_player].hand_value, WIN_VALUE);
                     game_data->players[next_player].out = 1;
                     next_player = get_next_player(next_player, game_data);
                 }
@@ -277,11 +299,11 @@ void play_game(int game_num, Game *game_data) {
                 printf(" HIT!\n");
                 add_move( &(game_data->players[next_player]), HIT);
                 deal_card( &(game_data->players[next_player]), game_data);
-                refresh_deck_value( &(game_data->players[next_player]));
-                if (game_data->players[next_player].deck_value > WIN_VALUE) {
+                refresh_hand_value( &(game_data->players[next_player]));
+                if (game_data->players[next_player].hand_value > WIN_VALUE) {
                     printf("Player %d is at %d, over %d! Player %d is out!\n", 
                         next_player+1, 
-                        game_data->players[next_player].deck_value, WIN_VALUE,
+                        game_data->players[next_player].hand_value, WIN_VALUE,
                         next_player+1);
                     game_data->players[next_player].out = 1;
                     next_player = get_next_player(next_player, game_data);
@@ -305,7 +327,7 @@ void print_heading(Game *game_data, int next_player) {
             if ( DEBUG == 1 || (!game_data->players[i].is_ai && 
                 (USERS_PLAYING == 1 || i == next_player)) ) {
                 printf("\nPlayer %d's hand (%2d):\t\t", 
-                    game_data->players[i].id, game_data->players[i].deck_value);
+                    game_data->players[i].id, game_data->players[i].hand_value);
                 print_cards(game_data->players[i].num_cards, 
                     game_data->players[i].hand);
             } else {
@@ -380,8 +402,8 @@ void deal_card(Player *player, Game *game_data) {
     player->hand[player->num_cards++] = game_data->deck.cards[random];
 }
 
-void refresh_deck_value(Player *player) {
-    /* Recalculates and updates the .deck_value for a given player. Includes
+void refresh_hand_value(Player *player) {
+    /* Recalculates and updates the .hand_value for a given player. Includes
     ace handling. */
 
     int i, sum = 0, aces = 0;
@@ -401,56 +423,70 @@ void refresh_deck_value(Player *player) {
         sum += aces;
         if (sum > WIN_VALUE) {
             // Even with all aces valued at MIN_ACE_VALUE, still over WIN_VALUE.
-            player->deck_value = sum;
+            player->hand_value = sum;
             return;
         }
 
         for (i = 0; i < aces; i++) {
             // Consider each ace. If we turn one of them into their max value,
             // are we still okay? If so, do that. Consider ace, if present. If 
-            // not okay, save the current sum in deck_value and exit.
+            // not okay, save the current sum in hand_value and exit.
             if (sum + MAX_ACE_VALUE-MIN_ACE_VALUE <= WIN_VALUE) {
                 sum += MAX_ACE_VALUE-MIN_ACE_VALUE;
             } else {
-                player->deck_value = sum;
+                player->hand_value = sum;
                 return;
             }
         }
     }
 
-    player->deck_value = sum;
+    player->hand_value = sum;
 }
 
 int ai_hit(Player *player, Game *game_data) {
     /* Calculates whether the AI should hit or pass. Returns a 1 for hit and 0
     for pass. */
 
-    // Checks if the AI is behind another player in value. If so, hit no matter
-    // what as passing would mean a certain loss.
     int i;
-    for (i = 0; i < NUM_PLAYERS; i++) {
-        if ( !game_data->players[i].out && 
-            player->id != game_data->players[i].id) {
-            if (player->deck_value <= game_data->players[i].deck_value) {
-                return 1;
+
+    if (player->difficulty >= 3) {
+        // Checks if the AI is behind another player in value. If so, hit no
+        // matter what as passing would mean a certain loss.
+        for (i = 0; i < NUM_PLAYERS; i++) {
+            if ( !game_data->players[i].out && 
+                player->id != game_data->players[i].id) {
+                if (player->hand_value <= game_data->players[i].hand_value) {
+                    return !(player->hand_value == WIN_VALUE);
+                }
             }
         }
     }
 
-    // Must not be behind in value relative to any other player. Calculate the
-    // number of cards that would result in losing and the number of cards that
-    // would not result in losing.
-    int cards_lose = 0, cards_survive = 0, curr_value = player->deck_value,
-        card_will_lose;
-    for (i = 0; i < NUM_CARDS; i++) {
-        card_will_lose = curr_value + game_data->deck.cards[i].rank > WIN_VALUE;
-        cards_lose += card_will_lose;
-        cards_survive += !card_will_lose;
+    if (player->difficulty >= 2) {
+        // Calculate the number of cards that would result in losing and the number
+        // of cards that would not result in losing.
+        int cards_lose = 0, cards_survive = 0, curr_value = player->hand_value,
+            card_will_lose;
+        for (i = 0; i < NUM_CARDS; i++) {
+            card_will_lose = curr_value + game_data->deck.cards[i].rank > WIN_VALUE;
+            cards_lose += card_will_lose;
+            cards_survive += !card_will_lose;
+        }
+
+        // If it's more likely to pick a card that'll keep you in the game, hit.
+        // Otherwise, pass.
+        return cards_survive >= cards_lose;
+    }
+    
+    if (player->difficulty >= 1) {
+        // Really simple (read: easy) AI, if it can even be called that. If
+        // current hand value is EASY_BOT_PASS_VALUE or above, pass. 
+        // Otherwise, hit.
+        return !(player->hand_value >= EASY_BOT_PASS_VALUE);
     }
 
-    // If it's more likely to pick a card that'll keep you in the game, hit.
-    // Otherwise, pass.
-    return cards_survive >= cards_lose;
+    // Suppress compilation "control reaches end of non-void function".
+    return -1;
 }
 
 int is_face_card(Card *card) {

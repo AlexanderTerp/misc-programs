@@ -19,6 +19,13 @@
 #endif
 
 // Define macro values.
+
+/* Define DEBUG level. Each subsequent level includes previous levels' features.
+    LEVEL 1: Don't print player moves. Instead, print players' hands.
+    LEVEL 2: Don't hide players' cards who are out.
+*/
+#define DEBUG 1
+
 #define WIN_VALUE 21
 #define NUM_CARDS 52
 #define NUM_SUITS 4
@@ -235,7 +242,7 @@ void play_game(int game_num, Game *game_data) {
     int i, hit, next_player = 0;
 
     printf("Round %d\n", game_num);
-    while ( !check_game_fin(game_data) ) {
+    do {
         printf("%s", LINE);
         print_heading(game_data, next_player);
 
@@ -285,7 +292,7 @@ void play_game(int game_num, Game *game_data) {
                 next_player = get_next_player(next_player, game_data);
             }
         }
-    }
+    } while ( !check_game_fin(game_data) );
 }
 
 void print_heading(Game *game_data, int next_player) {
@@ -294,9 +301,9 @@ void print_heading(Game *game_data, int next_player) {
     int i;
     for (i = 0; i < NUM_PLAYERS; i++) {
         // Only print for players still in the game.
-        if ( !game_data->players[i].out || game_data->players[i].out ) { // REMOVE OR
-            if ( !game_data->players[i].is_ai && (USERS_PLAYING == 1 || 
-                                                        i == next_player)) {
+        if ( !game_data->players[i].out || DEBUG == 2 ) { // REMOVE OR
+            if ( DEBUG == 1 || (!game_data->players[i].is_ai && 
+                (USERS_PLAYING == 1 || i == next_player)) ) {
                 printf("\nPlayer %d's hand (%2d):\t\t", 
                     game_data->players[i].id, game_data->players[i].deck_value);
                 print_cards(game_data->players[i].num_cards, 
@@ -319,21 +326,33 @@ void print_moves(Player *player) {
 }
 
 int check_game_fin(Game *game_data) {
-    /* Returns whether there are 1 or fewer active players still in the game.
-    1 if true, 0 if not. */
+    /* Returns whether or not the game is finished. This is true if there are 
+    less than 2 active players left or if, throughout the previous round, nobody
+    hit after someone else passed. */
 
-    int players_left = 0;
-    int i;
+    int i, prev_move_pass = 1, players_left = 0;
     for (i = 0; i < NUM_PLAYERS; i++) {
         if (!game_data->players[i].out) {
             players_left++;
+
+            if (players_left > 1 && prev_move_pass) {
+                if (game_data->players[i].num_moves <= 2 || 
+                    game_data->players[i].moves[ 
+                    game_data->players[i].num_moves-2 ] == HIT) {
+                    return 0;
+                }
+            }
         }
 
-        if (players_left >= 2) {
-            return 0;
-        }
     }
 
+    // Made it through the loop, so we can state logical truths. 
+    // If players_left > 1, nobody hit after someone else only passed.
+    //      Therefore, return FINISHED.
+    // If players <= 1, we know nothing about players hitting after passes. We 
+    //      also don't care. Just return FINISHED.
+    // Either way, the game is FINISHED. Return 1.
+    printf("FINISHED!\n");
     return 1;
 }
 
@@ -345,7 +364,7 @@ int get_next_player(int prev_player, Game *game_data) {
     while (game_data->players[i].out) {
         i = (i + 1) % NUM_PLAYERS;
     }
-    
+
     return i;
 }
 

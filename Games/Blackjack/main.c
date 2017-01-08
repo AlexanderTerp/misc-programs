@@ -181,7 +181,7 @@ void play_game(int game_num, Game *game_data) {
     while ( !check_game_fin(game_data) ) {
         printf("%s", LINE);
         for (i = 0; i < NUM_PLAYERS; i++) {
-            if ( !game_data->players[i].out ) {
+            if ( !game_data->players[i].out || game_data->players[i].out ) { // REMOVE OR
                 printf("\nPlayer %d's hand (%2d):\t\t", 
                     game_data->players[i].id, game_data->players[i].deck_value);
                 print_cards(game_data->players[i].num_cards_in_hand, 
@@ -213,10 +213,10 @@ void play_game(int game_num, Game *game_data) {
                 printf(" .");
                 cross_sleep(1000);
             }
-            printf("\n");
             hit = ai_hit( &(game_data->players[next_player]), game_data);
 
             if (hit) {
+                printf(" HIT!\n");
                 deal_card( &(game_data->players[next_player]), game_data);
                 refresh_deck_value( &(game_data->players[next_player]));
                 if (game_data->players[next_player].deck_value > WIN_VALUE) {
@@ -228,6 +228,7 @@ void play_game(int game_num, Game *game_data) {
                     next_player = get_next_player(next_player, game_data);
                 }
             } else {
+                printf(" PASS!\n");
                 next_player = get_next_player(next_player, game_data);
             }
         }
@@ -300,7 +301,7 @@ void deal_card(Player *player, Game *game_data) {
 void refresh_deck_value(Player *player) {
     /* Recalculates and updates the .deck_value for a given player. */
 
-    int i, sum;
+    int i, sum = 0;
     for (i = 0; i < player->num_cards_in_hand; i++) {
         sum += player->hand[i].rank;
     }

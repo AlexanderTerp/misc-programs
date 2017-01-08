@@ -26,9 +26,11 @@
 // LEVEL 2: Don't hide players' cards even if they're out.
 #define DEBUG 0
 
-#define MIN_BOT_DIFFICULTY 1
-#define MAX_BOT_DIFFICULTY 3
-#define EASY_BOT_PASS_VALUE 16
+#define MIN_AI_DIFFICULTY 1
+#define MAX_AI_DIFFICULTY 3
+#define EASY_AI_PASS_VALUE 16
+
+#define AI_DELAY 1
 
 #define WIN_VALUE 21
 #define NUM_CARDS 52
@@ -116,6 +118,7 @@ void refresh_hand_value(Player *player);
 int ai_hit(Player *player, Game *game_data);
 int is_face_card(Card *card);
 void add_move(Player *player, char move);
+void declare_victor(Game *game_data);
 
 int main(void) {
     // Initialize game_data and seed the random number generator.
@@ -243,7 +246,7 @@ int init_players(Game *game_data) {
             player.is_ai = 1;
 
             printf("\nDefine a bot difficulty %d to %d for Player %d:\n> ", 
-                MIN_BOT_DIFFICULTY, MAX_BOT_DIFFICULTY, i);
+                MIN_AI_DIFFICULTY, MAX_AI_DIFFICULTY, i);
             scanf("%d", &difficulty);
 
             player.difficulty = difficulty;
@@ -289,7 +292,7 @@ void play_game(int game_num, Game *game_data) {
             }
 
         } else {
-            for (i = 0; i < 3; i++) {
+            for (i = 0; i < AI_DELAY; i++) {
                 printf(" .");
                 cross_sleep(1000);
             }
@@ -315,6 +318,8 @@ void play_game(int game_num, Game *game_data) {
             }
         }
     } while ( !check_game_fin(game_data) );
+
+    declare_victor(game_data);
 }
 
 void print_heading(Game *game_data, int next_player) {
@@ -331,7 +336,7 @@ void print_heading(Game *game_data, int next_player) {
                 print_cards(game_data->players[i].num_cards, 
                     game_data->players[i].hand);
             } else {
-                printf("\n# Player %d's cards:\t\t%d |", 
+                printf("\n# Player %d's cards:\t\t%d | ", 
                     game_data->players[i].id, game_data->players[i].num_cards);
                 print_moves( &(game_data->players[i]) );
             }
@@ -374,7 +379,6 @@ int check_game_fin(Game *game_data) {
     // If players <= 1, we know nothing about players hitting after passes. We 
     //      also don't care. Just return FINISHED.
     // Either way, the game is FINISHED. Return 1.
-    printf("FINISHED!\n");
     return 1;
 }
 
@@ -480,9 +484,9 @@ int ai_hit(Player *player, Game *game_data) {
     
     if (player->difficulty >= 1) {
         // Really simple (read: easy) AI, if it can even be called that. If
-        // current hand value is EASY_BOT_PASS_VALUE or above, pass. 
+        // current hand value is EASY_AI_PASS_VALUE or above, pass. 
         // Otherwise, hit.
-        return !(player->hand_value >= EASY_BOT_PASS_VALUE);
+        return !(player->hand_value >= EASY_AI_PASS_VALUE);
     }
 
     // Suppress compilation "control reaches end of non-void function".
@@ -507,4 +511,49 @@ void add_move(Player *player, char move) {
     }
 
     player->moves[player->num_moves-1] = move;
+}
+
+void declare_victor(Game *game_data) {
+    /* Called at the end of the game. Prints the hand values of each player, 
+    declares the winner, and changes number of wins for each player.*/
+
+    Player *winners[NUM_PLAYERS];
+    int i, highest_value = 0, num_winners = 0;
+    for (i = 0; i < NUM_PLAYERS; i++) {
+        if ( !game_data->players[i].out ) {
+            if (game_data->players[i].hand_value == highest_value) {
+                winners[num_winners] = &(game_data->players[i]);
+                num_winners++;
+            } else if (game_data->players[i].hand_value > highest_value) {
+                highest_value = game_data->players[i].hand_value;
+                winners[0] = &(game_data->players[i]);
+                num_winners = 1;
+            }
+        }
+    }
+
+    for (i = 0; i < num_winners; i++) {
+        winners[i]->wins++;
+
+        if (i == 0) {
+            printf("\nCongratulations to Player %d", winners[i]->id);
+        } else {
+            printf(", Player %d", winners[i]->id);
+        }
+    }
+    printf("!\n");
+
+    for (i = 0; i < NUM_PLAYERS; i++) {
+        printf("Player %d: %2d with ", game_data->players[i].id, 
+            game_data->players[i].hand_value);
+        print_cards(game_data->players[i].num_cards, 
+            game_data->players[i].hand);
+        printf("\n");
+    }
+
+    printf("\nUpdated scores: \n");
+    for (i = 0; i < NUM_PLAYERS; i++) {
+        printf("Player %d: %2d\n", game_data->players[i].id, 
+            game_data->players[i].wins);
+    }
 }

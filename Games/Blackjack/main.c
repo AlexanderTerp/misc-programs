@@ -43,6 +43,14 @@
 #define DIAMONDS 'D'
 #define CLUBS 'C'
 
+#define JACK_CHAR 'J'
+#define QUEEN_CHAR 'Q'
+#define KING_CHAR 'K'
+#define ACE_CHAR 'A'
+
+
+#define HIT 'H'
+#define PASS 'P'
 #define LINE "-----------------------------------------------"
 
 // Define global variables.
@@ -153,10 +161,22 @@ void repopulate_deck(Deck* deck) {
 }
 
 void print_cards(int num_cards, Card cards[num_cards]) {
+    /* Prints out all he cards in a deck/hand. Prints letters to correspond with
+    face cards when encountered. */
 
     int i;
     for (i = 0; i < num_cards; i++) {
-        printf("%d%c, ", cards[i].rank, cards[i].suit);
+        if (cards[i].rank == JACK) {
+            printf("%c%c, ", JACK_CHAR, cards[i].suit);
+        } else if (cards[i].rank == QUEEN) {
+            printf("%c%c, ", QUEEN_CHAR, cards[i].suit);
+        } else if (cards[i].rank == KING) {
+            printf("%c%c, ", KING_CHAR, cards[i].suit);
+        } else if (cards[i].rank == ACE) {
+            printf("%c%c, ", ACE_CHAR, cards[i].suit);
+        } else {
+            printf("%d%c, ", cards[i].rank, cards[i].suit);
+        }
     }
 }
 
@@ -196,9 +216,9 @@ void play_game(int game_num, Game *game_data) {
             }
         }
 
+        printf("\n\nPlayer %d's turn", next_player+1);
         if ( !game_data->players[next_player].is_ai ) {
-            printf("\n\nYOUR TURN\n");
-            printf("Hit? (1/0)\n> ");
+            printf("\nHit? (1/0)\n> ");
             scanf("%d", &hit);
 
             if (hit) {
@@ -215,7 +235,6 @@ void play_game(int game_num, Game *game_data) {
             }
 
         } else {
-            printf("\n\nPlayer %d's turn", next_player+1);
             for (i = 0; i < 3; i++) {
                 printf(" .");
                 cross_sleep(1000);
@@ -384,3 +403,7 @@ int is_face_card(Card *card) {
 
     return card->rank >= JACK && card->rank < ACE;
 }
+
+// int add_move(Player *player, char move) {
+
+// }

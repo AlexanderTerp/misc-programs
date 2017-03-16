@@ -18,12 +18,32 @@
 #define PRECISION_MULT 10
 #define SQRT_2 (int) (PRECISION_MULT * 1.4142)
 
+#define RED "\x1B[1;31m"
+#define GREEN "\x1B[1;32m"
+#define CYAN "\x1B[1;36m"
+#define NORMAL "\x1B[0m"
+
 #define DEBUG 0
+
+/* Three levels of animate:
+    1 - Print out colored map once after exit is found.
+    2 - Print out a colored map after each step.
+    3 - Print out a colored map after each node that is analyzed. */
+#define ANIMATE 1
+
+// Check whether system OS is Windows or Unix.
+#ifdef _WIN32
+    #define OS_IS_WINDOWS 1
+    #include <windows.h>
+#else
+    #define OS_IS_WINDOWS 0
+    #include <unistd.h>
+#endif
 
 // Define global variables.
 int NUM_ROWS;
 int NUM_COLS;
-Node* start_node;
+Node*** grid;
 Node* end_node;
 
 typedef struct {
@@ -38,11 +58,12 @@ int analyze_step(Node*** grid, Node* node, Heap* open_nodes);
 int analyze_node(Node* next_node, Node* curr_node);
 int get_distance(Node* node1, Node* node2);
 int cmp(Node* a, Node* b);
-int min(int a, int b);
+int num_min(int a, int b);
 void print_grid(Node*** grid);
 void print_node_list(Node** list, int len);
 void add_open_node(Node* node, Heap* open_nodes);
 void draw_path(Node*** grid, Node* end_node);
+void clear_screen();
 
 int main(int argc, char *argv[]) {
 
@@ -59,7 +80,7 @@ int main(int argc, char *argv[]) {
         *(open_nodes.nodes) );
     open_nodes.num_open_nodes = 0;
 
-    Node*** grid = load_map(argv[1], &open_nodes);
+    grid = load_map(argv[1], &open_nodes);
     //print_grid(grid);
 
     // Node** neighbors = get_neighbors(grid, grid[3][8]);
@@ -67,13 +88,17 @@ int main(int argc, char *argv[]) {
 
     // analyze_step(grid, start_node);
 
+    if (ANIMATE) {
+        clear_screen();
+    }
+
     // A STAR
     int found = 0;
     while (!found) {
         found = analyze_step(grid, open_nodes.nodes[0], &open_nodes);
     }
 
-    //draw_path(grid, end_node);
+    draw_path(grid, end_node);
     printf("Found!\n");
 
     return 0;
@@ -127,7 +152,6 @@ Node*** load_map(char *map_name, Heap* open_nodes) {
             new_node->analyzed_once = 0;
             new_node->heap_index = -1;
             new_node->g_cost = 0;
-            start_node = new_node;
             add_open_node(new_node, open_nodes);
         } else if (new_node->type == OBSTACLE) {
             new_node->is_open = 0;
@@ -198,6 +222,11 @@ int analyze_step(Node*** grid, Node* node, Heap* open_nodes) {
         }
     }
 
+    if (ANIMATE == 2) {
+        clear_screen();
+        print_grid(grid);
+    }
+
     return 0;
 }
 
@@ -237,6 +266,11 @@ int analyze_node(Node* next_node, Node* curr_node) {
             next_node->col, next_node->g_cost, next_node->h_cost, next_node->f_cost);
     }
 
+    if (ANIMATE == 3) {
+        clear_screen();
+        print_grid(grid);
+    }
+
     return (next_node->type == END);
 }
 
@@ -245,10 +279,10 @@ int get_distance(Node* node1, Node* node2) {
     int dx = abs(node1->col - node2->col);
     int dy = abs(node1->row - node2->row);
 
-    return min(dx, dy) * SQRT_2 + abs(dx - dy) * PRECISION_MULT;
+    return num_min(dx, dy) * SQRT_2 + abs(dx - dy) * PRECISION_MULT;
 }
 
-int min(int a, int b) {
+int num_min(int a, int b) {
     return (a < b) ? a : b;
 }
 
@@ -269,7 +303,16 @@ int cmp(Node* a, Node* b) {
 void print_grid(Node*** grid) {
     for (int i = 0; i < NUM_ROWS; i++) {
         for (int j = 0; j < NUM_COLS; j++) {
-            printf("%c", grid[i][j]->type);
+            if (ANIMATE) {
+                if (grid[i][j]->is_open && grid[i][j]->analyzed_once)
+                    printf(GREEN "%c", grid[i][j]->type);
+                else if (!grid[i][j]->is_open && grid[i][j]->analyzed_once)
+                    printf(RED "%c", grid[i][j]->type);
+                else
+                    printf(NORMAL "%c", grid[i][j]->type);
+            } else {
+                printf("%c", grid[i][j]->type);
+            }
         }
         printf("\n");
     }
@@ -304,4 +347,13 @@ void draw_path(Node*** grid, Node* end_node) {
     }
 
     print_grid(grid);
+}
+
+void clear_screen() {
+    // Clears the terminal. Compatible with both Windows and Unix systems.
+    if (OS_IS_WINDOWS) {
+        system("cls");
+    } else {
+        system("clear");
+    }
 }

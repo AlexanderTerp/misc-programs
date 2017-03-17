@@ -7,20 +7,26 @@ The program contains a macro value 'ANIMATE'. As described more detailed by the 
 
 ### Examples:
 map1:
-[!map1_solved](Pictures/map1_solved.PNG)
+
+<img src="https://raw.githubusercontent.com/Terpal47/misc-programs/master/Algorithms/A-Star%20Pathfinding/Pictures/map1_solved.PNG" width="180">
 
 map6:
-[!map6_solved](Pictures/map6_solved.PNG)
+
+<img src="https://raw.githubusercontent.com/Terpal47/misc-programs/master/Algorithms/A-Star%20Pathfinding/Pictures/map6_solved.PNG" width="200">
 
 map7:
-[!map7_solved](Pictures/map7_solved.PNG)
+
+<img src="https://raw.githubusercontent.com/Terpal47/misc-programs/master/Algorithms/A-Star%20Pathfinding/Pictures/map7_solved.PNG" width="400">
 
 map8:
-[!map8_solved](Pictures/map8_solved.PNG)
+
+<img src="https://raw.githubusercontent.com/Terpal47/misc-programs/master/Algorithms/A-Star%20Pathfinding/Pictures/map8_solved.PNG" width="400">
 
 maze1:
-[!maze1_solved](Pictures/maze1_solved.PNG)
+
+<img src="https://raw.githubusercontent.com/Terpal47/misc-programs/master/Algorithms/A-Star%20Pathfinding/Pictures/maze1_solved.PNG" width="200">
 
 ### To use (e.g. on map3):
 ```> gcc -std=c99 -Wall -o main main.c```
+
 ```> main Maps/map3```

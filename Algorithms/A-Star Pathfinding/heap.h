@@ -80,7 +80,7 @@ void add_node ( Node* node, Node** array, int len, int (*cmp)(Node* a, Node* b) 
         // node's new parent (unless the node is now the root).
 
         parent_index = get_parent_index(index);
-        if (parent_index == 0) {
+        if (index == 0) {
             // The node is at the root. No more parents to check. Must be in correct position.
             node->heap_index = index;
             break;

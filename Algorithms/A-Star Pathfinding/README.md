@@ -3,7 +3,7 @@ This folder contains my implementation of the [A* search algorithm](https://en.w
 
 Maps are drawn with open, traversable spaces being represented by the '\_' character, walls/non-traversable objects by the 'Z' character, and 'S' and 'E' for the start and end respectively. These maps are interpreted via the load_graph function which loads each character in the map into a matrix of pointers to nodes containing information about what type of node it is ('_', 'Z', 'S', 'E'), whether it's 'open', whether it's been analyzed before, as well as g_cost, h_cost, and f_cost where appropriate.
 
-The program contains a macro value 'ANIMATE'. As described more detailed by the comments in the code, this value (0 - 3) determines whether maps are colored or even shown as the algorithm progressively finds the shortest path. I recommend giving it value "1" as progressively showing the map is particularly laggy due to the slow printf output, particularly when using Windows (better on Linux).
+The program contains a macro value 'ANIMATE'. As described in more detail by the comments in the code, this value [0 to 2] determines whether maps are colored or even repeatedly printed as the algorithm progressively finds the shortest path. I recommend giving it value "1" as progressively showing the map is particularly laggy due to the slow printf output, particularly when using Windows (better on Linux).
 
 ### Examples:
 map1:
